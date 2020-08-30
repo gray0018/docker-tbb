@@ -339,7 +339,7 @@ SUITESPARSE_VERSION = 5.8.1
     # -DHAVE_TBB        enable the use of Intel's Threading Building Blocks
     # -DGPU_BLAS        enable the use of the CUDA BLAS
 
-    SPQR_CONFIG ?= $(GPU_CONFIG)
+    SPQR_CONFIG ?= $(GPU_CONFIG) -DHAVE_TBB
     # to compile with Intel's TBB, use TBB=-ltbb -DSPQR_CONFIG=-DHAVE_TBB
     # TBB ?=
     TBB = -ltbb -DSPQR_CONFIG=-DHAVE_TBB
