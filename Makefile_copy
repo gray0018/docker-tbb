@@ -1,0 +1,57 @@
+#===============================================================================
+# SuiteSparseQR/Demo/Makefile
+#===============================================================================
+
+
+include ../../SuiteSparse_config/SuiteSparse_config.mk
+
+#-------------------------------------------------------------------------------
+# the optional SPQRGPU module requires CUDA, SuiteSparse_GPURuntime, GPUQREngine
+ifneq ($(GPU_CONFIG),)
+    LIB_WITH_SPQRGPU = $(CUDART_LIB) $(CUBLAS_LIB) \
+        -lSuiteSparse_GPURuntime -lGPUQREngine
+    I_WITH_SPQRGPU = -I../../SuiteSparse_GPURuntime/Include \
+        -I../../GPUQREngine/Include $(CUDA_INC)
+else
+    LIB_WITH_SPQRGPU = 
+    I_WITH_SPQRGPU = 
+endif
+
+
+
+
+#-------------------------------------------------------------------------------
+
+CLIB = $(LDFLAGS) -L../../lib -lspqr -lsuitesparseconfig -lcholmod -lamd \
+        -lcolamd $(LIB_WITH_PARTITION) $(LIB_WITH_SPQRGPU) $(LDLIBS)
+
+# use the BLAS and LAPACK defined by SuiteSparse_config.mk; do not use valgrind 
+FLIB = $(LAPACK) $(BLAS)
+V =
+
+# To use Valgrind and the plain BLAS and plain LAPACK (non-optimized):
+# FLIB = -lgfortran -llapack_plain -lblas_plain -lg2c
+# V = valgrind --quiet
+
+
+gpu1: qrdemo_gpi
+	- $(V) ./qrdemo_gpi  
+
+
+INC = ../Include/spqr.hpp ../Include/SuiteSparseQR_C.h \
+	../Include/SuiteSparseQR_definitions.h \
+	../Include/SuiteSparseQR.hpp Makefile
+
+I = -I../../include $(I_WITH_SPQRGPU)
+
+C = $(CXX) $(CF) $(SPQR_CONFIG) $(CONFIG_PARTITION) $(CONFIG_GPU) $(I) \
+	$(CHOLMOD_CONFIG)
+
+LIBS = $(CLIB) $(FLIB) $(TBB)
+
+qrdemo_gpi: qrdemo_gpi.cpp $(INC)
+ifneq ($(GPU_CONFIG),)
+	$(C) qrdemo_gpi.cpp -o qrdemo_gpi $(LIBS)
+else
+	echo
+endif
